@@ -1,0 +1,29 @@
+# Files to ignore by git.
+
+# Back-up files
+*~
+*.swp
+
+# Generic auto-generated build files
+*.pyc
+*.pyo
+
+# Specific auto-generated build files
+/.eggs
+/.tox
+/__pycache__
+/build
+/dfvfs-snippets.egg-info
+/dist
+/MANIFEST
+/MANIFEST.test_data
+
+# Code review files
+/.review
+
+# PyCharm files
+/.idea
+
+# Test coverage files
+.coverage
+tests-coverage.txt
