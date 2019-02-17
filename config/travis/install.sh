@@ -62,7 +62,11 @@ then
 
 	docker exec ${CONTAINER_NAME} dnf copr -y enable @gift/dev;
 
-	if test ${TRAVIS_PYTHON_VERSION} = "2.7";
+	if test -n "${TOXENV}";
+	then
+		docker exec ${CONTAINER_NAME} dnf install -y python3-tox;
+
+	elif test ${TRAVIS_PYTHON_VERSION} = "2.7";
 	then
 		docker exec ${CONTAINER_NAME} dnf install -y git python2 ${RPM_PYTHON2_DEPENDENCIES} ${RPM_PYTHON2_TEST_DEPENDENCIES};
 	else
