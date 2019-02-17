@@ -56,7 +56,30 @@ class TestOutputWriter(list_file_entries.OutputWriter):
 class FileEntryListerTest(test_lib.BaseTestCase):
   """Tests for the file entry lister."""
 
-  # TODO: add tests for _ListFileEntry
+  def testListFileEntry(self):
+    """Tests the _ListFileEntry function."""
+    path = self._GetTestFilePath(['image.qcow2'])
+    test_lister = list_file_entries.FileEntryLister()
+
+    path_spec = path_spec_factory.Factory.NewPathSpec(
+        dfvfs_definitions.TYPE_INDICATOR_OS, location=path)
+    path_spec = path_spec_factory.Factory.NewPathSpec(
+        dfvfs_definitions.TYPE_INDICATOR_QCOW, parent=path_spec)
+    path_spec = path_spec_factory.Factory.NewPathSpec(
+        dfvfs_definitions.TYPE_INDICATOR_TSK, location='/passwords.txt',
+        parent=path_spec)
+
+    file_system = resolver.Resolver.OpenFileSystem(path_spec)
+    file_entry = resolver.Resolver.OpenFileEntry(path_spec)
+
+    output_writer = TestOutputWriter()
+    test_lister._ListFileEntry(
+        file_system, file_entry, '/', output_writer)
+
+    self.assertEqual(len(output_writer.paths), 1)
+
+    expected_paths = ['/passwords.txt']
+    self.assertEqual(output_writer.paths, expected_paths)
 
   def testListFileEntries(self):
     """Tests the ListFileEntries function."""
