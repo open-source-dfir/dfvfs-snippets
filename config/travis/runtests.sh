@@ -16,7 +16,7 @@ elif test "${TARGET}" = "pylint";
 then
 	pylint --version
 
-	for FILE in `find setup.py config dfvfs-snippets scripts tests -name \*.py`;
+	for FILE in `find config dfvfs-snippets scripts tests -name \*.py`;
 	do
 		echo "Checking: ${FILE}";
 
@@ -26,17 +26,6 @@ then
 elif test "${TRAVIS_OS_NAME}" = "osx";
 then
 	PYTHONPATH=/Library/Python/2.7/site-packages/ /usr/bin/python ./run_tests.py;
-
-	python ./setup.py build
-
-	python ./setup.py sdist
-
-	python ./setup.py bdist
-
-	if test -f tests/end-to-end.py;
-	then
-		PYTHONPATH=. python ./tests/end-to-end.py --debug -c config/end-to-end.ini;
-	fi
 
 elif test -n "${FEDORA_VERSION}";
 then
@@ -71,23 +60,5 @@ then
 		${COVERAGE} run --source=dfvfs-snippets --omit="*_test*,*__init__*,*test_lib*" ./run_tests.py
 	else
 		python ./run_tests.py
-
-		python ./setup.py build
-
-		python ./setup.py sdist
-
-		python ./setup.py bdist
-
-		TMPDIR="${PWD}/tmp";
-		TMPSITEPACKAGES="${TMPDIR}/lib/python${TRAVIS_PYTHON_VERSION}/site-packages";
-
-		mkdir -p ${TMPSITEPACKAGES};
-
-		PYTHONPATH=${TMPSITEPACKAGES} python ./setup.py install --prefix=${TMPDIR};
-
-		if test -f tests/end-to-end.py;
-		then
-			PYTHONPATH=. python ./tests/end-to-end.py --debug -c config/end-to-end.ini;
-		fi
 	fi
 fi
