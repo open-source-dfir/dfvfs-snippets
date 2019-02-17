@@ -185,8 +185,7 @@ class StdoutWriter(OutputWriter):
     Args:
       path (str): path of the file.
     """
-    encoded_path = self._EncodeString(path)
-    print(encoded_path)
+    print(path)
 
 
 def Main():
