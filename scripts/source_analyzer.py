@@ -12,6 +12,7 @@ from dfvfs.credentials import manager as credentials_manager
 from dfvfs.helpers import command_line
 from dfvfs.helpers import source_scanner
 from dfvfs.lib import definitions as dfvfs_definitions
+from dfvfs.resolver import resolver
 
 
 class SourceAnalyzer(object):
@@ -47,7 +48,8 @@ class SourceAnalyzer(object):
           is not a file or directory, or if the format of or within the source
           file is not supported.
     """
-    if not os.path.exists(source_path):
+    if (not source_path.startswith('\\\\.\\') and
+        not os.path.exists(source_path)):
       raise RuntimeError('No such source: {0:s}.'.format(source_path))
 
     scan_context = source_scanner.SourceScannerContext()
@@ -148,8 +150,16 @@ class StdoutWriter(command_line.StdoutOutputWriter):
     if scan_node in scan_context.locked_scan_nodes:
       flags = ' [LOCKED]'
 
+    type_indicator = scan_node.path_spec.type_indicator
+    if type_indicator == dfvfs_definitions.TYPE_INDICATOR_TSK:
+      file_system = resolver.Resolver.OpenFileSystem(scan_node.path_spec)
+      if file_system.IsHFS():
+        flags = ' [HFS/HFS+/HFSX]'
+      elif file_system.IsNTFS():
+        flags = ' [NTFS]'
+
     self.Write('{0:s}{1:s}: {2:s}{3:s}\n'.format(
-        indentation, scan_node.path_spec.type_indicator, values, flags))
+        indentation, type_indicator, values, flags))
 
     indentation = '  {0:s}'.format(indentation)
     for sub_scan_node in scan_node.sub_nodes:
