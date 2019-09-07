@@ -9,7 +9,6 @@ import os
 import sys
 import unittest
 
-from dfvfs.helpers import volume_scanner
 from dfvfs.lib import definitions as dfvfs_definitions
 from dfvfs.resolver import resolver
 from dfvfs.path import factory as path_spec_factory
@@ -55,6 +54,8 @@ class TestOutputWriter(list_file_entries.OutputWriter):
 @test_lib.skipUnlessHasTestFile(['image.qcow2'])
 class FileEntryListerTest(test_lib.BaseTestCase):
   """Tests for the file entry lister."""
+
+  # pylint: disable=protected-access
 
   def testListFileEntry(self):
     """Tests the _ListFileEntry function."""

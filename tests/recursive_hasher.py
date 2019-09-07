@@ -9,7 +9,6 @@ import os
 import sys
 import unittest
 
-from dfvfs.helpers import volume_scanner
 from dfvfs.lib import definitions as dfvfs_definitions
 from dfvfs.resolver import resolver
 from dfvfs.path import factory as path_spec_factory
@@ -56,6 +55,8 @@ class TestOutputWriter(recursive_hasher.OutputWriter):
 @test_lib.skipUnlessHasTestFile(['image.qcow2'])
 class RecursiveHasherTest(test_lib.BaseTestCase):
   """Tests for the recursive hasher."""
+
+  # pylint: disable=protected-access
 
   def testCalculateHashDataStream(self):
     """Tests the _CalculateHashDataStream function."""

@@ -254,11 +254,9 @@ class StdoutWriter(OutputWriter):
 
   def Close(self):
     """Closes the output writer object."""
-    pass
 
   def Open(self):
     """Opens the output writer object."""
-    pass
 
   def WriteFileHash(self, path, hash_value):
     """Writes the file path and hash to stdout.
