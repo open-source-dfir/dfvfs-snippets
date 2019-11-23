@@ -10,7 +10,7 @@ set -e;
 
 pylint --version
 
-for FILE in $(find config scripts tests -name \*.py);
+for FILE in $(find setup.py config dfvfs-snippets scripts tests -name \*.py);
 do
 	echo "Checking: ${FILE}";
 

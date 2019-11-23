@@ -14,3 +14,11 @@ if test -f tests/end-to-end.py;
 then
 	PYTHONPATH=. python3 ./tests/end-to-end.py --debug -c config/end-to-end.ini;
 fi
+
+python3 ./setup.py build
+
+python3 ./setup.py sdist
+
+python3 ./setup.py bdist
+
+python3 ./setup.py install
