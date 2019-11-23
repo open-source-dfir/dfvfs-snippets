@@ -27,3 +27,11 @@ if test -f tests/end-to-end.py;
 then
 	PYTHONPATH=. python2 ./tests/end-to-end.py --debug -c config/end-to-end.ini;
 fi
+
+python2 ./setup.py build
+
+python2 ./setup.py sdist
+
+python2 ./setup.py bdist
+
+python2 ./setup.py install

@@ -13,7 +13,7 @@
 /.tox
 /__pycache__
 /build
-/dfvfs-snippets.egg-info
+/dfvfs_snippets.egg-info
 /dist
 /MANIFEST
 /MANIFEST.test_data
