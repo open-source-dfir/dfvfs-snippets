@@ -39,7 +39,7 @@ class RecursiveHasher(volume_scanner.VolumeScanner):
     _BYTES_TYPE = bytes
 
   # Class constant that defines the default read buffer size.
-  _READ_BUFFER_SIZE = 32768
+  _READ_BUFFER_SIZE = 16 * 1024 * 1024
 
   def _CalculateHashDataStream(self, file_entry, data_stream_name):
     """Calculates a message digest hash of the data of the file entry.

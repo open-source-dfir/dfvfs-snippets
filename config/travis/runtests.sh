@@ -78,5 +78,9 @@ then
 
 elif test "${TRAVIS_OS_NAME}" = "osx";
 then
+	# set the following environment variables to build pycrypto.
+	export CFLAGS="-I/usr/local/include -L/usr/local/lib";
+	export TOX_TESTENV_PASSENV="CFLAGS";
+
 	tox -e ${TOXENV};
 fi

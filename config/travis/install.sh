@@ -126,8 +126,5 @@ elif test ${TRAVIS_OS_NAME} = "osx";
 then
 	brew update;
 
-	# gmp is needed to build pycrypto.
-	brew install gmp;
-
 	brew install tox;
 fi
