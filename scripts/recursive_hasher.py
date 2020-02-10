@@ -57,6 +57,10 @@ class RecursiveHasher(volume_scanner.VolumeScanner):
     Returns:
       str: digest hash or None.
     """
+    if file_entry.IsPipe() or file_entry.IsSocket():
+      # Ignore FIFOs/pipes and sockets.
+      return None
+
     hash_context = hashlib.sha256()
 
     try:
