@@ -41,6 +41,12 @@ class RecursiveHasher(volume_scanner.VolumeScanner):
   # Class constant that defines the default read buffer size.
   _READ_BUFFER_SIZE = 16 * 1024 * 1024
 
+  # List of tuple that contain:
+  #    tuple: full path represented as a tuple of path segments
+  #    str: data stream name
+  _PATHS_TO_IGNORE = frozenset([
+      (('$BadClus', ), '$Bad')])
+
   def _CalculateHashDataStream(self, file_entry, data_stream_name):
     """Calculates a message digest hash of the data of the file entry.
 
@@ -51,6 +57,10 @@ class RecursiveHasher(volume_scanner.VolumeScanner):
     Returns:
       str: digest hash or None.
     """
+    if file_entry.IsPipe() or file_entry.IsSocket():
+      # Ignore FIFOs/pipes and sockets.
+      return None
+
     hash_context = hashlib.sha256()
 
     try:
@@ -89,35 +99,40 @@ class RecursiveHasher(volume_scanner.VolumeScanner):
     return digest_hash
 
   def _CalculateHashesFileEntry(
-      self, file_system, file_entry, parent_full_path, output_writer):
+      self, file_system, file_entry, parent_path_segments, output_writer):
     """Recursive calculates hashes starting with the file entry.
 
     Args:
       file_system (dfvfs.FileSystem): file system.
       file_entry (dfvfs.FileEntry): file entry.
-      parent_full_path (str): full path of the parent file entry.
+      parent_path_segments (str): path segments of the full path of the parent
+          file entry.
       output_writer (StdoutWriter): output writer.
     """
-    # Since every file system implementation can have their own path
-    # segment separator we are using JoinPath to be platform and file system
-    # type independent.
-    full_path = file_system.JoinPath([parent_full_path, file_entry.name])
+    path_segments = list(parent_path_segments)
+    path_segments.append(file_entry.name)
+    lookup_path = tuple(path_segments[1:])
+
     for data_stream in file_entry.data_streams:
-      hash_value = self._CalculateHashDataStream(file_entry, data_stream.name)
+      hash_value = None
+      if (lookup_path, data_stream.name) not in self._PATHS_TO_IGNORE:
+        hash_value = self._CalculateHashDataStream(file_entry, data_stream.name)
+
       display_path = self._GetDisplayPath(
-          file_entry.path_spec, full_path, data_stream.name)
+          file_entry.path_spec, path_segments, data_stream.name)
       output_writer.WriteFileHash(display_path, hash_value or 'N/A')
 
     for sub_file_entry in file_entry.sub_file_entries:
       self._CalculateHashesFileEntry(
-          file_system, sub_file_entry, full_path, output_writer)
+          file_system, sub_file_entry, path_segments, output_writer)
 
-  def _GetDisplayPath(self, path_spec, full_path, data_stream_name):
+  def _GetDisplayPath(self, path_spec, path_segments, data_stream_name):
     """Retrieves a path to display.
 
     Args:
       path_spec (dfvfs.PathSpec): path specification of the file entry.
-      full_path (str): full path of the file entry.
+      path_segments (list[str]): path segments of the full path of the file
+          entry.
       data_stream_name (str): name of the data stream.
 
     Returns:
@@ -131,7 +146,7 @@ class RecursiveHasher(volume_scanner.VolumeScanner):
           dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION):
         display_path = ''.join([display_path, parent_path_spec.location])
 
-    display_path = ''.join([display_path, full_path])
+    display_path = ''.join([display_path, '/'.join(path_segments)])
     if data_stream_name:
       display_path = ':'.join([display_path, data_stream_name])
 
@@ -279,9 +294,40 @@ def Main():
       'storage media image.'))
 
   argument_parser.add_argument(
+      '--back_end', '--back-end', dest='back_end', action='store',
+      metavar='NTFS', default=None, help='preferred dfVFS back-end.')
+
+  argument_parser.add_argument(
       '--output_file', '--output-file', dest='output_file', action='store',
       metavar='source.hashes', default=None, help=(
           'path of the output file, default is to output to stdout.'))
+
+  argument_parser.add_argument(
+      '--partitions', '--partition', dest='partitions', action='store',
+      type=str, default=None, help=(
+          'Define partitions to be processed. A range of '
+          'partitions can be defined as: "3..5". Multiple partitions can '
+          'be defined as: "1,3,5" (a list of comma separated values). '
+          'Ranges and lists can also be combined as: "1,3..5". The first '
+          'partition is 1. All partitions can be specified with: "all".'))
+
+  argument_parser.add_argument(
+      '--snapshots', '--snapshot', dest='snapshots', action='store', type=str,
+      default=None, help=(
+          'Define snapshots to be processed. A range of snapshots can be '
+          'defined as: "3..5". Multiple snapshots can be defined as: "1,3,5" '
+          '(a list of comma separated values). Ranges and lists can also be '
+          'combined as: "1,3..5". The first snapshot is 1. All snapshots can '
+          'be specified with: "all".'))
+
+  argument_parser.add_argument(
+      '--volumes', '--volume', dest='volumes', action='store', type=str,
+      default=None, help=(
+          'Define volumes to be processed. A range of volumes can be defined '
+          'as: "3..5". Multiple volumes can be defined as: "1,3,5" (a list '
+          'of comma separated values). Ranges and lists can also be combined '
+          'as: "1,3..5". The first volume is 1. All volumes can be specified '
+          'with: "all".'))
 
   argument_parser.add_argument(
       'source', nargs='?', action='store', metavar='image.raw',
@@ -312,12 +358,29 @@ def Main():
     print('')
     return False
 
-  return_value = True
+  if options.back_end == 'NTFS':
+    dfvfs_definitions.PREFERRED_NTFS_BACK_END = (
+        dfvfs_definitions.TYPE_INDICATOR_NTFS)
+  elif options.back_end == 'TSK':
+    dfvfs_definitions.PREFERRED_NTFS_BACK_END = (
+        dfvfs_definitions.TYPE_INDICATOR_TSK)
+
   mediator = command_line.CLIVolumeScannerMediator()
   recursive_hasher = RecursiveHasher(mediator=mediator)
 
+  volume_scanner_options = volume_scanner.VolumeScannerOptions()
+  volume_scanner_options.partitions = mediator.ParseVolumeIdentifiersString(
+      options.partitions)
+  volume_scanner_options.snapshots = mediator.ParseVolumeIdentifiersString(
+      options.snapshots)
+  volume_scanner_options.volumes = mediator.ParseVolumeIdentifiersString(
+      options.volumes)
+
+  return_value = True
+
   try:
-    base_path_specs = recursive_hasher.GetBasePathSpecs(options.source)
+    base_path_specs = recursive_hasher.GetBasePathSpecs(
+        options.source, options=volume_scanner_options)
     if not base_path_specs:
       print('No supported file system found in source.')
       print('')

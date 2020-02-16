@@ -97,7 +97,7 @@ class RecursiveHasherTest(test_lib.BaseTestCase):
 
     output_writer = TestOutputWriter()
     test_hasher._CalculateHashesFileEntry(
-        file_system, file_entry, '/', output_writer)
+        file_system, file_entry, [''], output_writer)
 
     self.assertEqual(len(output_writer.hashes), 1)
 
@@ -120,7 +120,7 @@ class RecursiveHasherTest(test_lib.BaseTestCase):
         parent=path_spec)
 
     display_path = test_hasher._GetDisplayPath(
-        path_spec, '/passwords.txt', 'stream')
+        path_spec, ['', 'passwords.txt'], 'stream')
     self.assertEqual(display_path, '/passwords.txt:stream')
 
   def testCalculateHashes(self):
