@@ -74,8 +74,7 @@ class FileEntryListerTest(test_lib.BaseTestCase):
     file_entry = resolver.Resolver.OpenFileEntry(path_spec)
 
     output_writer = TestOutputWriter()
-    test_lister._ListFileEntry(
-        file_system, file_entry, '/', output_writer)
+    test_lister._ListFileEntry(file_system, file_entry, [''], output_writer)
 
     self.assertEqual(len(output_writer.paths), 1)
 
