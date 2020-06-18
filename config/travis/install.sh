@@ -35,13 +35,7 @@ then
 		RPM_PACKAGES="python3-tox";
 
 	else
-		RPM_PACKAGES="";
-
-		if test ${TARGET} = "pylint";
-		then
-			RPM_PACKAGES="${RPM_PACKAGES} findutils pylint";
-		fi
-		RPM_PACKAGES="${RPM_PACKAGES} python3 ${RPM_PYTHON3_DEPENDENCIES} ${RPM_PYTHON3_TEST_DEPENDENCIES}";
+		RPM_PACKAGES="python3 ${RPM_PYTHON3_DEPENDENCIES} ${RPM_PYTHON3_TEST_DEPENDENCIES}";
 	fi
 	docker exec ${CONTAINER_NAME} dnf install -y ${RPM_PACKAGES};
 
@@ -56,7 +50,7 @@ then
 	docker run --name=${CONTAINER_NAME} --detach -i ubuntu:${UBUNTU_VERSION};
 
 	# Install add-apt-repository and locale-gen.
-	docker exec ${CONTAINER_NAME} apt-get update -q;
+	docker exec -e "DEBIAN_FRONTEND=noninteractive" ${CONTAINER_NAME} sh -c "apt-get update -q";
 	docker exec -e "DEBIAN_FRONTEND=noninteractive" ${CONTAINER_NAME} sh -c "apt-get install -y locales software-properties-common";
 
 	# Add additional apt repositories.
@@ -64,14 +58,10 @@ then
 	then
 		docker exec ${CONTAINER_NAME} add-apt-repository universe;
 		docker exec ${CONTAINER_NAME} add-apt-repository ppa:deadsnakes/ppa -y;
-
-	elif test ${TARGET} = "pylint";
-	then
-		docker exec ${CONTAINER_NAME} add-apt-repository ppa:gift/pylint3 -y;
 	fi
 	docker exec ${CONTAINER_NAME} add-apt-repository ppa:gift/dev -y;
 
-	docker exec ${CONTAINER_NAME} apt-get update -q;
+	docker exec -e "DEBIAN_FRONTEND=noninteractive" ${CONTAINER_NAME} sh -c "apt-get update -q";
 
 	# Set locale to US English and UTF-8.
 	docker exec ${CONTAINER_NAME} locale-gen en_US.UTF-8;
@@ -79,26 +69,13 @@ then
 	# Install packages.
 	if test -n "${TOXENV}";
 	then
-		DPKG_PACKAGES="build-essential python${TRAVIS_PYTHON_VERSION} python${TRAVIS_PYTHON_VERSION}-dev tox";
+		DPKG_PACKAGES="build-essential curl python${TRAVIS_PYTHON_VERSION} python${TRAVIS_PYTHON_VERSION}-dev tox";
+
+	elif test "${TARGET}" = "jenkins3";
+	then
+		DPKG_PACKAGES="sudo";
 	else
-		DPKG_PACKAGES="";
-
-		if test "${TARGET}" = "coverage";
-		then
-			DPKG_PACKAGES="${DPKG_PACKAGES} curl git";
-
-		elif test "${TARGET}" = "jenkins3";
-		then
-			DPKG_PACKAGES="${DPKG_PACKAGES} sudo";
-
-		elif test ${TARGET} = "pylint";
-		then
-			DPKG_PACKAGES="${DPKG_PACKAGES} python3-distutils pylint";
-		fi
-		if test "${TARGET}" != "jenkins3";
-		then
-			DPKG_PACKAGES="${DPKG_PACKAGES} python3 ${DPKG_PYTHON3_DEPENDENCIES} ${DPKG_PYTHON3_TEST_DEPENDENCIES}";
-		fi
+		DPKG_PACKAGES="python3 ${DPKG_PYTHON3_DEPENDENCIES} ${DPKG_PYTHON3_TEST_DEPENDENCIES}";
 	fi
 	docker exec -e "DEBIAN_FRONTEND=noninteractive" ${CONTAINER_NAME} sh -c "apt-get install -y ${DPKG_PACKAGES}";
 
@@ -108,7 +85,7 @@ elif test ${TRAVIS_OS_NAME} = "osx";
 then
 	brew update;
 
-	# Brew will exit with 1 and print some diagnotisic information
+	# Brew will exit with 1 and print some diagnostic information
 	# to prevent the CI test from failing || true is added.
 	brew install tox || true;
 fi
