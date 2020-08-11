@@ -116,7 +116,7 @@ class RecursiveHasher(volume_scanner.VolumeScanner):
         self._CalculateHashesFileEntry(
             file_system, sub_file_entry, path_segments, output_writer)
 
-    except dfvfs_errors.AccessError as exception:
+    except (IOError, dfvfs_errors.AccessError) as exception:
       logging.warning((
           'Unable to open path specification:\n{0:s}'
           'with error: {1!s}').format(
