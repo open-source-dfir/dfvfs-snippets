@@ -17,7 +17,7 @@ import sys
 from dfvfs.analyzer import analyzer
 from dfvfs.analyzer import fvde_analyzer_helper
 from dfvfs.lib import definitions as dfvfs_definitions
-from dfvfs.lib import errors
+from dfvfs.lib import errors as dfvfs_errors
 from dfvfs.helpers import command_line
 from dfvfs.helpers import volume_scanner
 from dfvfs.resolver import resolver
@@ -111,9 +111,16 @@ class RecursiveHasher(volume_scanner.VolumeScanner):
           file_entry.path_spec, path_segments, data_stream.name)
       output_writer.WriteFileHash(display_path, hash_value or 'N/A')
 
-    for sub_file_entry in file_entry.sub_file_entries:
-      self._CalculateHashesFileEntry(
-          file_system, sub_file_entry, path_segments, output_writer)
+    try:
+      for sub_file_entry in file_entry.sub_file_entries:
+        self._CalculateHashesFileEntry(
+            file_system, sub_file_entry, path_segments, output_writer)
+
+    except dfvfs_errors.AccessError as exception:
+      logging.warning((
+          'Unable to open path specification:\n{0:s}'
+          'with error: {1!s}').format(
+              file_entry.path_spec.comparable, exception))
 
   def _GetDisplayPath(self, path_spec, path_segments, data_stream_name):
     """Retrieves a path to display.
@@ -380,13 +387,13 @@ def Main():
     print('')
     print('Completed.')
 
-  except errors.ScannerError as exception:
+  except dfvfs_errors.ScannerError as exception:
     return_value = False
 
     print('')
     print('[ERROR] {0!s}'.format(exception))
 
-  except errors.UserAbort as exception:
+  except dfvfs_errors.UserAbort as exception:
     return_value = False
 
     print('')
