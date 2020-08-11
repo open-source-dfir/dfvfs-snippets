@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 
 import os
 import shutil
-import sys
 import tempfile
 import unittest
 
@@ -25,9 +24,6 @@ def skipUnlessHasTestFile(path_segments):  # pylint: disable=invalid-name
   path = os.path.join('test_data', *path_segments)
   if fail_unless_has_test_file or os.path.exists(path):
     return lambda function: function
-
-  if sys.version_info[0] < 3:
-    path = path.encode('utf-8')
 
   # Note that the message should be of type str which is different for
   # different versions of Python.
