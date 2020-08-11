@@ -33,11 +33,6 @@ except KeyError:
 class RecursiveHasher(volume_scanner.VolumeScanner):
   """Recursively calculates message digest hashes of data streams."""
 
-  if sys.version_info[0] < 3:
-    _BYTES_TYPE = str
-  else:
-    _BYTES_TYPE = bytes
-
   # Class constant that defines the default read buffer size.
   _READ_BUFFER_SIZE = 16 * 1024 * 1024
 
@@ -90,13 +85,7 @@ class RecursiveHasher(volume_scanner.VolumeScanner):
     finally:
       file_object.close()
 
-    # hexdigest() returns bytes in Python 2 and str in Python 3.
-    digest_hash = hash_context.hexdigest()
-
-    if isinstance(digest_hash, self._BYTES_TYPE):
-      digest_hash = digest_hash.decode('ascii')
-
-    return digest_hash
+    return hash_context.hexdigest()
 
   def _CalculateHashesFileEntry(
       self, file_system, file_entry, parent_path_segments, output_writer):

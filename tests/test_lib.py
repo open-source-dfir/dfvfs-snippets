@@ -26,9 +26,6 @@ def skipUnlessHasTestFile(path_segments):  # pylint: disable=invalid-name
   if fail_unless_has_test_file or os.path.exists(path):
     return lambda function: function
 
-  if sys.version_info[0] < 3:
-    path = path.encode('utf-8')
-
   # Note that the message should be of type str which is different for
   # different versions of Python.
   return unittest.skip('missing test file: {0:s}'.format(path))
