@@ -56,6 +56,10 @@ class RecursiveHasher(volume_scanner.VolumeScanner):
       # Ignore FIFOs/pipes and sockets.
       return None
 
+    if file_entry.IsDevice() and not file_entry.path_spec.IsSystemLevel():
+      # Ignore non-system level device files.
+      return None
+
     hash_context = hashlib.sha256()
 
     try:
