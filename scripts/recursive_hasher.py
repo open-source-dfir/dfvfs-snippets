@@ -52,12 +52,8 @@ class RecursiveHasher(volume_scanner.VolumeScanner):
     Returns:
       str: digest hash or None.
     """
-    if file_entry.IsPipe() or file_entry.IsSocket():
-      # Ignore FIFOs/pipes and sockets.
-      return None
-
-    if file_entry.IsDevice() and not file_entry.path_spec.IsSystemLevel():
-      # Ignore non-system level device files.
+    if file_entry.IsDevice() or file_entry.IsPipe() or file_entry.IsSocket():
+      # Ignore devices, FIFOs/pipes and sockets.
       return None
 
     hash_context = hashlib.sha256()
