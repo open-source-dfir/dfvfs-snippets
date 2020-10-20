@@ -354,10 +354,23 @@ def Main():
     print('')
     return False
 
-  if options.back_end == 'NTFS':
+  if options.back_end == 'EXT':
+    dfvfs_definitions.PREFERRED_EX_BACK_END = (
+        dfvfs_definitions.TYPE_INDICATOR_EXT)
+
+  elif options.back_end == 'HFS':
+    dfvfs_definitions.PREFERRED_EX_BACK_END = (
+        dfvfs_definitions.TYPE_INDICATOR_HFS)
+
+  elif options.back_end == 'NTFS':
     dfvfs_definitions.PREFERRED_NTFS_BACK_END = (
         dfvfs_definitions.TYPE_INDICATOR_NTFS)
+
   elif options.back_end == 'TSK':
+    dfvfs_definitions.PREFERRED_EXT_BACK_END = (
+        dfvfs_definitions.TYPE_INDICATOR_TSK)
+    dfvfs_definitions.PREFERRED_HFS_BACK_END = (
+        dfvfs_definitions.TYPE_INDICATOR_TSK)
     dfvfs_definitions.PREFERRED_NTFS_BACK_END = (
         dfvfs_definitions.TYPE_INDICATOR_TSK)
 

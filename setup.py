@@ -24,7 +24,7 @@ if version_tuple < (3, 6):
 
 setup(
     name='dfvfs-snippets',
-    version='20191123',
+    version='20201020',
     description='Collection of example scripts that use dfVFS',
     long_description='Collection of example scripts that use dfVFS',
     license='Apache License, Version 2.0',
