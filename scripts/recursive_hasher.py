@@ -42,6 +42,11 @@ class RecursiveHasher(volume_scanner.VolumeScanner):
   _PATHS_TO_IGNORE = frozenset([
       (('$BadClus', ), '$Bad')])
 
+  _NON_PRINTABLE_CHARACTERS = list(range(0, 0x20)) + list(range(0x7f, 0xa0))
+  _ESCAPE_CHARACTERS = str.maketrans({
+      value: '\\x{0:02x}'.format(value)
+      for value in _NON_PRINTABLE_CHARACTERS})
+
   def _CalculateHashDataStream(self, file_entry, data_stream_name):
     """Calculates a message digest hash of the data of the file entry.
 
@@ -98,8 +103,7 @@ class RecursiveHasher(volume_scanner.VolumeScanner):
           file entry.
       output_writer (StdoutWriter): output writer.
     """
-    path_segments = list(parent_path_segments)
-    path_segments.append(file_entry.name)
+    path_segments = parent_path_segments + [file_entry.name]
     lookup_path = tuple(path_segments[1:])
 
     for data_stream in file_entry.data_streams:
@@ -116,7 +120,8 @@ class RecursiveHasher(volume_scanner.VolumeScanner):
         self._CalculateHashesFileEntry(
             file_system, sub_file_entry, path_segments, output_writer)
 
-    except (IOError, dfvfs_errors.AccessError) as exception:
+    except (IOError, dfvfs_errors.AccessError,
+            dfvfs_errors.BackEndError) as exception:
       logging.warning((
           'Unable to open path specification:\n{0:s}'
           'with error: {1!s}').format(
@@ -142,11 +147,15 @@ class RecursiveHasher(volume_scanner.VolumeScanner):
           dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION):
         display_path = ''.join([display_path, parent_path_spec.location])
 
+    path_segments = [
+        segment.translate(self._ESCAPE_CHARACTERS) for segment in path_segments]
     display_path = ''.join([display_path, '/'.join(path_segments)])
+
     if data_stream_name:
+      data_stream_name = data_stream_name.translate(self._ESCAPE_CHARACTERS)
       display_path = ':'.join([display_path, data_stream_name])
 
-    return display_path
+    return display_path or '/'
 
   def CalculateHashes(self, base_path_specs, output_writer):
     """Recursive calculates hashes starting with the base path specification.
@@ -163,7 +172,7 @@ class RecursiveHasher(volume_scanner.VolumeScanner):
             base_path_spec.comparable))
         continue
 
-      self._CalculateHashesFileEntry(file_system, file_entry, '', output_writer)
+      self._CalculateHashesFileEntry(file_system, file_entry, [], output_writer)
 
 
 class OutputWriter(object):
