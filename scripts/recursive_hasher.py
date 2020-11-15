@@ -389,8 +389,13 @@ def Main():
   volume_scanner_options = volume_scanner.VolumeScannerOptions()
   volume_scanner_options.partitions = mediator.ParseVolumeIdentifiersString(
       options.partitions)
-  volume_scanner_options.snapshots = mediator.ParseVolumeIdentifiersString(
-      options.snapshots)
+
+  if options.snapshots == 'none':
+    volume_scanner_options.snapshots = ['none']
+  else:
+    volume_scanner_options.snapshots = mediator.ParseVolumeIdentifiersString(
+        options.snapshots)
+
   volume_scanner_options.volumes = mediator.ParseVolumeIdentifiersString(
       options.volumes)
 
