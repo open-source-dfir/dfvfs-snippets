@@ -235,9 +235,40 @@ def Main():
       'Lists file entries in a directory or storage media image.'))
 
   argument_parser.add_argument(
+      '--back_end', '--back-end', dest='back_end', action='store',
+      metavar='NTFS', default=None, help='preferred dfVFS back-end.')
+
+  argument_parser.add_argument(
       '--output_file', '--output-file', dest='output_file', action='store',
       metavar='source.hashes', default=None, help=(
           'path of the output file, default is to output to stdout.'))
+
+  argument_parser.add_argument(
+      '--partitions', '--partition', dest='partitions', action='store',
+      type=str, default=None, help=(
+          'Define partitions to be processed. A range of '
+          'partitions can be defined as: "3..5". Multiple partitions can '
+          'be defined as: "1,3,5" (a list of comma separated values). '
+          'Ranges and lists can also be combined as: "1,3..5". The first '
+          'partition is 1. All partitions can be specified with: "all".'))
+
+  argument_parser.add_argument(
+      '--snapshots', '--snapshot', dest='snapshots', action='store', type=str,
+      default=None, help=(
+          'Define snapshots to be processed. A range of snapshots can be '
+          'defined as: "3..5". Multiple snapshots can be defined as: "1,3,5" '
+          '(a list of comma separated values). Ranges and lists can also be '
+          'combined as: "1,3..5". The first snapshot is 1. All snapshots can '
+          'be specified with: "all".'))
+
+  argument_parser.add_argument(
+      '--volumes', '--volume', dest='volumes', action='store', type=str,
+      default=None, help=(
+          'Define volumes to be processed. A range of volumes can be defined '
+          'as: "3..5". Multiple volumes can be defined as: "1,3,5" (a list '
+          'of comma separated values). Ranges and lists can also be combined '
+          'as: "1,3..5". The first volume is 1. All volumes can be specified '
+          'with: "all".'))
 
   argument_parser.add_argument(
       'source', nargs='?', action='store', metavar='image.raw',
@@ -268,12 +299,47 @@ def Main():
     print('')
     return False
 
-  return_value = True
+  if options.back_end == 'EXT':
+    dfvfs_definitions.PREFERRED_EXT_BACK_END = (
+        dfvfs_definitions.TYPE_INDICATOR_EXT)
+
+  elif options.back_end == 'HFS':
+    dfvfs_definitions.PREFERRED_HFS_BACK_END = (
+        dfvfs_definitions.TYPE_INDICATOR_HFS)
+
+  elif options.back_end == 'NTFS':
+    dfvfs_definitions.PREFERRED_NTFS_BACK_END = (
+        dfvfs_definitions.TYPE_INDICATOR_NTFS)
+
+  elif options.back_end == 'TSK':
+    dfvfs_definitions.PREFERRED_EXT_BACK_END = (
+        dfvfs_definitions.TYPE_INDICATOR_TSK)
+    dfvfs_definitions.PREFERRED_HFS_BACK_END = (
+        dfvfs_definitions.TYPE_INDICATOR_TSK)
+    dfvfs_definitions.PREFERRED_NTFS_BACK_END = (
+        dfvfs_definitions.TYPE_INDICATOR_TSK)
+
   mediator = command_line.CLIVolumeScannerMediator()
   file_entry_lister = FileEntryLister(mediator=mediator)
 
+  volume_scanner_options = volume_scanner.VolumeScannerOptions()
+  volume_scanner_options.partitions = mediator.ParseVolumeIdentifiersString(
+      options.partitions)
+
+  if options.snapshots == 'none':
+    volume_scanner_options.snapshots = ['none']
+  else:
+    volume_scanner_options.snapshots = mediator.ParseVolumeIdentifiersString(
+        options.snapshots)
+
+  volume_scanner_options.volumes = mediator.ParseVolumeIdentifiersString(
+      options.volumes)
+
+  return_value = True
+
   try:
-    base_path_specs = file_entry_lister.GetBasePathSpecs(options.source)
+    base_path_specs = file_entry_lister.GetBasePathSpecs(
+        options.source, options=volume_scanner_options)
     if not base_path_specs:
       print('No supported file system found in source.')
       print('')
