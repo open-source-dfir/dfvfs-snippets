@@ -5,9 +5,6 @@
 # If you update this script make sure to update the corresponding wiki page
 # as well: https://github.com/log2timeline/dfvfs/wiki/Development
 
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import abc
 import argparse
 import hashlib
