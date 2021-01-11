@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 """Tests for the recursive hasher script."""
 
-from __future__ import unicode_literals
-
 import io
 import os
 import sys

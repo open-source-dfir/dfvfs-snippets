@@ -2,9 +2,6 @@
 # -*- coding: utf-8 -*-
 """Script to analyze a source device, file or directory."""
 
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import argparse
 import getpass
 import locale

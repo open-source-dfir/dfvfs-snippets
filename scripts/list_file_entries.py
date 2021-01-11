@@ -2,9 +2,6 @@
 # -*- coding: utf-8 -*-
 """Script to list file entries."""
 
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import abc
 import argparse
 import logging
