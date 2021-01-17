@@ -344,22 +344,6 @@ def Main():
     print('')
     return False
 
-  logging.basicConfig(
-      level=logging.INFO, format='[%(levelname)s] %(message)s')
-
-  if options.output_file:
-    output_writer = FileOutputWriter(options.output_file)
-  else:
-    output_writer = StdoutWriter()
-
-  try:
-    output_writer.Open()
-  except IOError as exception:
-    print('Unable to open output writer with error: {0!s}.'.format(
-        exception))
-    print('')
-    return False
-
   if options.back_end == 'EXT':
     dfvfs_definitions.PREFERRED_EXT_BACK_END = (
         dfvfs_definitions.TYPE_INDICATOR_EXT)
@@ -379,6 +363,22 @@ def Main():
         dfvfs_definitions.TYPE_INDICATOR_TSK)
     dfvfs_definitions.PREFERRED_NTFS_BACK_END = (
         dfvfs_definitions.TYPE_INDICATOR_TSK)
+
+  logging.basicConfig(
+      level=logging.INFO, format='[%(levelname)s] %(message)s')
+
+  if options.output_file:
+    output_writer = FileOutputWriter(options.output_file)
+  else:
+    output_writer = StdoutWriter()
+
+  try:
+    output_writer.Open()
+  except IOError as exception:
+    print('Unable to open output writer with error: {0!s}.'.format(
+        exception))
+    print('')
+    return False
 
   mediator = command_line.CLIVolumeScannerMediator()
   recursive_hasher = RecursiveHasher(mediator=mediator)

@@ -11,7 +11,7 @@ import sys
 
 from dfvfs.credentials import manager as credentials_manager
 from dfvfs.helpers import source_scanner
-from dfvfs.lib import definitions
+from dfvfs.lib import definitions as dfvfs_definitions
 
 
 class SourceAnalyzer(object):
@@ -72,11 +72,13 @@ class SourceAnalyzer(object):
 
     # TODO: print volume description.
     if locked_scan_node.type_indicator == (
-        definitions.TYPE_INDICATOR_APFS_CONTAINER):
+        dfvfs_definitions.TYPE_INDICATOR_APFS_CONTAINER):
       line = 'Found an APFS encrypted volume.'
-    elif locked_scan_node.type_indicator == definitions.TYPE_INDICATOR_BDE:
+    elif locked_scan_node.type_indicator == (
+        dfvfs_definitions.TYPE_INDICATOR_BDE):
       line = 'Found a BitLocker encrypted volume.'
-    elif locked_scan_node.type_indicator == definitions.TYPE_INDICATOR_FVDE:
+    elif locked_scan_node.type_indicator == (
+        dfvfs_definitions.TYPE_INDICATOR_FVDE):
       line = 'Found a CoreStorage (FVDE) encrypted volume.'
     else:
       line = 'Found an encrypted volume.'
@@ -160,8 +162,9 @@ class SourceAnalyzer(object):
       scan_step += 1
 
       # The source is a directory or file.
-      if scan_context.source_type in [
-          definitions.SOURCE_TYPE_DIRECTORY, definitions.SOURCE_TYPE_FILE]:
+      if scan_context.source_type in (
+          dfvfs_definitions.SOURCE_TYPE_DIRECTORY,
+          dfvfs_definitions.SOURCE_TYPE_FILE):
         break
 
       # The source scanner found a locked volume, e.g. an encrypted volume,
@@ -286,6 +289,10 @@ def Main():
             'containing the file.'))
 
   argument_parser.add_argument(
+      '--back_end', '--back-end', dest='back_end', action='store',
+      metavar='NTFS', default=None, help='preferred dfVFS back-end.')
+
+  argument_parser.add_argument(
       '--no-auto-recurse', '--no_auto_recurse', dest='no_auto_recurse',
       action='store_true', default=False, help=(
           'Indicate that the source scanner should not auto-recurse.'))
@@ -298,6 +305,26 @@ def Main():
     argument_parser.print_help()
     print('')
     return False
+
+  if options.back_end == 'EXT':
+    dfvfs_definitions.PREFERRED_EXT_BACK_END = (
+        dfvfs_definitions.TYPE_INDICATOR_EXT)
+
+  elif options.back_end == 'HFS':
+    dfvfs_definitions.PREFERRED_HFS_BACK_END = (
+        dfvfs_definitions.TYPE_INDICATOR_HFS)
+
+  elif options.back_end == 'NTFS':
+    dfvfs_definitions.PREFERRED_NTFS_BACK_END = (
+        dfvfs_definitions.TYPE_INDICATOR_NTFS)
+
+  elif options.back_end == 'TSK':
+    dfvfs_definitions.PREFERRED_EXT_BACK_END = (
+        dfvfs_definitions.TYPE_INDICATOR_TSK)
+    dfvfs_definitions.PREFERRED_HFS_BACK_END = (
+        dfvfs_definitions.TYPE_INDICATOR_TSK)
+    dfvfs_definitions.PREFERRED_NTFS_BACK_END = (
+        dfvfs_definitions.TYPE_INDICATOR_TSK)
 
   logging.basicConfig(
       level=logging.INFO, format='[%(levelname)s] %(message)s')
