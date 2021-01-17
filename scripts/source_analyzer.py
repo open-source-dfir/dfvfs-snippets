@@ -3,13 +3,13 @@
 """Script to analyze a source device, file or directory."""
 
 import argparse
-import getpass
 import locale
 import logging
 import os
 import sys
 
 from dfvfs.credentials import manager as credentials_manager
+from dfvfs.helpers import command_line
 from dfvfs.helpers import source_scanner
 from dfvfs.lib import definitions as dfvfs_definitions
 
@@ -20,113 +20,20 @@ class SourceAnalyzer(object):
   # Class constant that defines the default read buffer size.
   _READ_BUFFER_SIZE = 32768
 
-  def __init__(self, auto_recurse=True):
+  def __init__(self, auto_recurse=True, mediator=None):
     """Initializes a source analyzer.
 
     Args:
       auto_recurse (Optional[bool]): True if the scan should automatically
           recurse as far as possible.
+      mediator (Optional[VolumeScannerMediator]): a volume scanner mediator.
     """
     super(SourceAnalyzer, self).__init__()
     self._auto_recurse = auto_recurse
     self._encode_errors = 'strict'
+    self._mediator = mediator
     self._preferred_encoding = locale.getpreferredencoding()
     self._source_scanner = source_scanner.SourceScanner()
-
-  def _EncodeString(self, string):
-    """Encodes a string in the preferred encoding.
-
-    Returns:
-      bytes: encoded string.
-    """
-    try:
-      # Note that encode() will first convert string into a Unicode string
-      # if necessary.
-      encoded_string = string.encode(
-          self._preferred_encoding, errors=self._encode_errors)
-    except UnicodeEncodeError:
-      if self._encode_errors == 'strict':
-        logging.error(
-            'Unable to properly write output due to encoding error. '
-            'Switching to error tolerant encoding which can result in '
-            'non Basic Latin (C0) characters to be replaced with "?" or '
-            '"\\ufffd".')
-        self._encode_errors = 'replace'
-
-      encoded_string = string.encode(
-          self._preferred_encoding, errors=self._encode_errors)
-
-    return encoded_string
-
-  def _PromptUserForEncryptedVolumeCredential(
-      self, scan_context, locked_scan_node, output_writer):
-    """Prompts the user to provide a credential for an encrypted volume.
-
-    Args:
-      scan_context (SourceScannerContext): the source scanner context.
-      locked_scan_node (SourceScanNode): the locked scan node.
-      output_writer (StdoutWriter): the output writer.
-    """
-    credentials = credentials_manager.CredentialsManager.GetCredentials(
-        locked_scan_node.path_spec)
-
-    # TODO: print volume description.
-    if locked_scan_node.type_indicator == (
-        dfvfs_definitions.TYPE_INDICATOR_APFS_CONTAINER):
-      line = 'Found an APFS encrypted volume.'
-    elif locked_scan_node.type_indicator == (
-        dfvfs_definitions.TYPE_INDICATOR_BDE):
-      line = 'Found a BitLocker encrypted volume.'
-    elif locked_scan_node.type_indicator == (
-        dfvfs_definitions.TYPE_INDICATOR_FVDE):
-      line = 'Found a CoreStorage (FVDE) encrypted volume.'
-    else:
-      line = 'Found an encrypted volume.'
-
-    output_writer.WriteLine(line)
-
-    credentials_list = list(credentials.CREDENTIALS)
-    credentials_list.append('skip')
-
-    # TODO: check which credentials are available.
-    output_writer.WriteLine('Supported credentials:')
-    output_writer.WriteLine('')
-    for index, name in enumerate(credentials_list):
-      output_writer.WriteLine('  {0:d}. {1:s}'.format(index + 1, name))
-    output_writer.WriteLine('')
-
-    result = False
-    while not result:
-      output_writer.WriteString(
-          'Select a credential to unlock the volume: ')
-      # TODO: add an input reader.
-      input_line = sys.stdin.readline()
-      input_line = input_line.strip()
-
-      if input_line in credentials_list:
-        credential_identifier = input_line
-      else:
-        try:
-          credential_identifier = int(input_line, 10)
-          credential_identifier = credentials_list[credential_identifier - 1]
-        except (IndexError, ValueError):
-          output_writer.WriteLine(
-              'Unsupported credential: {0:s}'.format(input_line))
-          continue
-
-      if credential_identifier == 'skip':
-        break
-
-      credential_data = getpass.getpass('Enter credential data: ')
-      output_writer.WriteLine('')
-
-      result = self._source_scanner.Unlock(
-          scan_context, locked_scan_node.path_spec, credential_identifier,
-          credential_data)
-
-      if not result:
-        output_writer.WriteLine('Unable to unlock volume.')
-        output_writer.WriteLine('')
 
   def Analyze(self, source_path, output_writer):
     """Analyzes the source.
@@ -170,8 +77,11 @@ class SourceAnalyzer(object):
       # The source scanner found a locked volume, e.g. an encrypted volume,
       # and we need a credential to unlock the volume.
       for locked_scan_node in scan_context.locked_scan_nodes:
-        self._PromptUserForEncryptedVolumeCredential(
-            scan_context, locked_scan_node, output_writer)
+        credentials = credentials_manager.CredentialsManager.GetCredentials(
+            locked_scan_node.path_spec)
+
+        self._mediator.UnlockEncryptedVolume(
+            source_scanner, scan_context, locked_scan_node, credentials)
 
       if not self._auto_recurse:
         scan_node = scan_context.GetUnscannedScanNode()
@@ -183,27 +93,8 @@ class SourceAnalyzer(object):
       output_writer.WriteScanContext(scan_context)
 
 
-class StdoutWriter(object):
+class StdoutWriter(command_line.StdoutOutputWriter):
   """Stdout output writer."""
-
-  def Open(self):
-    """Opens the output writer object.
-
-    Returns:
-      bool: True if open was successful or False if not.
-    """
-    return True
-
-  def Close(self):
-    """Closes the output writer object."""
-
-  def WriteLine(self, line):
-    """Writes a line of text to stdout.
-
-    Args:
-      line (str): line of text without a new line indicator.
-    """
-    print(line)
 
   def WriteScanContext(self, scan_context, scan_step=None):
     """Writes the source scanner context to stdout.
@@ -213,14 +104,14 @@ class StdoutWriter(object):
       scan_step (Optional[int]): the scan step, where None represents no step.
     """
     if scan_step is not None:
-      print('Scan step: {0:d}'.format(scan_step))
+      self.Write('Scan step: {0:d}\n'.format(scan_step))
 
-    print('Source type\t\t: {0:s}'.format(scan_context.source_type))
-    print('')
+    self.Write('Source type\t\t: {0:s}\n'.format(scan_context.source_type))
+    self.Write('\n')
 
     scan_node = scan_context.GetRootScanNode()
     self.WriteScanNode(scan_context, scan_node)
-    print('')
+    self.Write('\n')
 
   def WriteScanNode(self, scan_context, scan_node, indentation=''):
     """Writes the source scanner node to stdout.
@@ -257,20 +148,12 @@ class StdoutWriter(object):
     if scan_node in scan_context.locked_scan_nodes:
       flags = ' [LOCKED]'
 
-    print('{0:s}{1:s}: {2:s}{3:s}'.format(
+    self.Write('{0:s}{1:s}: {2:s}{3:s}\n'.format(
         indentation, scan_node.path_spec.type_indicator, values, flags))
 
     indentation = '  {0:s}'.format(indentation)
     for sub_scan_node in scan_node.sub_nodes:
       self.WriteScanNode(scan_context, sub_scan_node, indentation=indentation)
-
-  def WriteString(self, string):
-    """Writes a string of text to stdout.
-
-    Args:
-      string (str): string of text.
-    """
-    print(string, end='')
 
 
 def Main():
@@ -331,13 +214,13 @@ def Main():
 
   output_writer = StdoutWriter()
 
-  if not output_writer.Open():
-    print('Unable to open output writer.')
-    print('')
-    return False
+  mediator = command_line.CLIVolumeScannerMediator(
+      output_writer=output_writer)
+
+  source_analyzer = SourceAnalyzer(
+      auto_recurse=not options.no_auto_recurse, mediator=mediator)
 
   return_value = True
-  source_analyzer = SourceAnalyzer(auto_recurse=not options.no_auto_recurse)
 
   try:
     source_analyzer.Analyze(options.source, output_writer)
@@ -348,8 +231,6 @@ def Main():
     return_value = False
 
     print('Aborted by user.')
-
-  output_writer.Close()
 
   return return_value
 
