@@ -10,6 +10,6 @@
 # Fail on error.
 set -e
 
-./config/linux/ubuntu_install_dfvfs.sh include-test;
+./config/linux/ubuntu_install_dfvfs-snippets.sh include-test;
 
 ./config/jenkins/linux/run_end_to_end_tests.sh $1;

@@ -6,7 +6,7 @@
 # Exit on error.
 set -e
 
-# Dependencies for running dfvfs, alphabetized, one per line.
+# Dependencies for running dfvfs-snippets, alphabetized, one per line.
 # This should not include packages only required for testing or development.
 PYTHON3_DEPENDENCIES="libbde-python3
                       libewf-python3
@@ -18,17 +18,20 @@ PYTHON3_DEPENDENCIES="libbde-python3
                       libfvde-python3
                       libfwnt-python3
                       libluksde-python3
+                      libmodi-python3
                       libqcow-python3
                       libsigscan-python3
                       libsmdev-python3
                       libsmraw-python3
                       libvhdi-python3
                       libvmdk-python3
+                      libvsgpt-python3
                       libvshadow-python3
                       libvslvm-python3
                       python3-cffi
                       python3-cryptography
                       python3-dfdatetime
+                      python3-dfvfs
                       python3-dtfabric
                       python3-idna
                       python3-pytsk3
@@ -64,6 +67,8 @@ DEBUG_DEPENDENCIES="libbde-debuginfo
                     libfwnt-python3-debuginfo
                     libluksde-debuginfo
                     libluksde-python3-debuginfo
+                    libmodi-debuginfo
+                    libmodi-python3-debuginfo
                     libqcow-debuginfo
                     libqcow-python3-debuginfo
                     libsigscan-debuginfo
@@ -76,6 +81,8 @@ DEBUG_DEPENDENCIES="libbde-debuginfo
                     libvhdi-python3-debuginfo
                     libvmdk-debuginfo
                     libvmdk-python3-debuginfo
+                    libvsgpt-debuginfo
+                    libvsgpt-python3-debuginfo
                     libvshadow-debuginfo
                     libvshadow-python3-debuginfo
                     libvslvm-debuginfo

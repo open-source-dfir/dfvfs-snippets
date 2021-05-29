@@ -88,17 +88,19 @@ class FileEntryListerTest(test_lib.BaseTestCase):
     output_writer = TestOutputWriter()
     test_lister.ListFileEntries(base_path_specs, output_writer)
 
-    self.assertEqual(len(output_writer.paths), 7)
-
     expected_paths = [
         '/',
         '/lost+found',
         '/a_directory',
         '/a_directory/another_file',
         '/a_directory/a_file',
-        '/passwords.txt',
-        '/$OrphanFiles']
+        '/passwords.txt']
 
+    if dfvfs_definitions.PREFERRED_EXT_BACK_END == (
+        dfvfs_definitions.TYPE_INDICATOR_TSK):
+      expected_paths.append('/$OrphanFiles')
+
+    self.assertEqual(len(output_writer.paths), len(expected_paths))
     self.assertEqual(output_writer.paths, expected_paths)
 
   def testGetBasePathSpecs(self):
@@ -111,7 +113,7 @@ class FileEntryListerTest(test_lib.BaseTestCase):
     expected_path_spec = path_spec_factory.Factory.NewPathSpec(
         dfvfs_definitions.TYPE_INDICATOR_QCOW, parent=expected_path_spec)
     expected_path_spec = path_spec_factory.Factory.NewPathSpec(
-        dfvfs_definitions.TYPE_INDICATOR_TSK, location='/',
+        dfvfs_definitions.PREFERRED_EXT_BACK_END, location='/',
         parent=expected_path_spec)
 
     base_path_specs = test_lister.GetBasePathSpecs(path)

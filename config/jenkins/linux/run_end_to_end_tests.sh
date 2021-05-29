@@ -14,7 +14,7 @@ CONFIGURATION_FILE="${CONFIGURATION_NAME}.ini";
 SOURCES_DIRECTORY="/media/greendale_images";
 REFERENCES_DIRECTORY="/media/greendale_images";
 
-RESULTS_DIRECTORY="dfvfs-out";
+RESULTS_DIRECTORY="dfvfs-snippets-out";
 
 # Change path to test this script on CI system.
 if test ${CONFIGURATION_NAME} = 'ci';
@@ -43,7 +43,7 @@ PYTHONPATH=. python3 ./utils/check_dependencies.py
 
 # Start the end-to-end tests in the background so we can capture the PID of
 # the process while the script is running.
-PYTHONPATH=. python3 ./tests/end-to-end.py --config ${CONFIGURATION_FILE} --sources-directory ${SOURCES_DIRECTORY} --scripts-directory ./tests --results-directory ${RESULTS_DIRECTORY} --references-directory ${REFERENCES_DIRECTORY} &
+PYTHONPATH=. python3 ./tests/end-to-end.py --config ${CONFIGURATION_FILE} --sources-directory ${SOURCES_DIRECTORY} --scripts-directory ./scripts --results-directory ${RESULTS_DIRECTORY} --references-directory ${REFERENCES_DIRECTORY} &
 
 PID_COMMAND=$!;
 

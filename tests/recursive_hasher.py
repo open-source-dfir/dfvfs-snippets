@@ -151,7 +151,7 @@ class RecursiveHasherTest(test_lib.BaseTestCase):
     expected_path_spec = path_spec_factory.Factory.NewPathSpec(
         dfvfs_definitions.TYPE_INDICATOR_QCOW, parent=expected_path_spec)
     expected_path_spec = path_spec_factory.Factory.NewPathSpec(
-        dfvfs_definitions.TYPE_INDICATOR_TSK, location='/',
+        dfvfs_definitions.PREFERRED_EXT_BACK_END, location='/',
         parent=expected_path_spec)
 
     base_path_specs = test_hasher.GetBasePathSpecs(path)
