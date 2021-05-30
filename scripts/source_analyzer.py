@@ -83,7 +83,7 @@ class SourceAnalyzer(object):
             locked_scan_node.path_spec)
 
         self._mediator.UnlockEncryptedVolume(
-            source_scanner, scan_context, locked_scan_node, credentials)
+            self._source_scanner, scan_context, locked_scan_node, credentials)
 
       if not self._auto_recurse:
         scan_node = scan_context.GetUnscannedScanNode()
@@ -146,18 +146,19 @@ class StdoutWriter(command_line.StdoutOutputWriter):
 
     values = ', '.join(values)
 
-    flags = ''
+    flags = []
     if scan_node in scan_context.locked_scan_nodes:
-      flags = ' [LOCKED]'
+      flags.append('[LOCKED]')
 
     type_indicator = scan_node.path_spec.type_indicator
     if type_indicator == dfvfs_definitions.TYPE_INDICATOR_TSK:
       file_system = resolver.Resolver.OpenFileSystem(scan_node.path_spec)
       if file_system.IsHFS():
-        flags = ' [HFS/HFS+/HFSX]'
+        flags.append('[HFS/HFS+/HFSX]')
       elif file_system.IsNTFS():
-        flags = ' [NTFS]'
+        flags.append('[NTFS]')
 
+    flags = ' '.join(flags)
     self.Write('{0:s}{1:s}: {2:s}{3:s}\n'.format(
         indentation, type_indicator, values, flags))
 
