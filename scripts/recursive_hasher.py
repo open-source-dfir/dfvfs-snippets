@@ -65,10 +65,11 @@ class RecursiveHasher(volume_scanner.VolumeScanner):
     try:
       file_object = file_entry.GetFileObject(data_stream_name=data_stream_name)
     except IOError as exception:
+      path_specification_string = helpers.GetPathSpecificationString(
+          file_entry.path_spec)
       logging.warning((
           'Unable to open path specification:\n{0:s}'
-          'with error: {1!s}').format(
-              file_entry.path_spec.comparable, exception))
+          'with error: {1!s}').format(path_specification_string, exception))
       return None
 
     if not file_object:
@@ -80,10 +81,11 @@ class RecursiveHasher(volume_scanner.VolumeScanner):
         hash_context.update(data)
         data = file_object.read(self._READ_BUFFER_SIZE)
     except IOError as exception:
+      path_specification_string = helpers.GetPathSpecificationString(
+          file_entry.path_spec)
       logging.warning((
           'Unable to read from path specification:\n{0:s}'
-          'with error: {1!s}').format(
-              file_entry.path_spec.comparable, exception))
+          'with error: {1!s}').format(path_specification_string, exception))
       return None
 
     return hash_context.hexdigest()
@@ -118,10 +120,11 @@ class RecursiveHasher(volume_scanner.VolumeScanner):
 
     except (IOError, dfvfs_errors.AccessError,
             dfvfs_errors.BackEndError) as exception:
+      path_specification_string = helpers.GetPathSpecificationString(
+          file_entry.path_spec)
       logging.warning((
           'Unable to open path specification:\n{0:s}'
-          'with error: {1!s}').format(
-              file_entry.path_spec.comparable, exception))
+          'with error: {1!s}').format(path_specification_string, exception))
 
   def _GetDisplayPath(self, path_spec, path_segments, data_stream_name):
     """Retrieves a path to display.
@@ -164,8 +167,10 @@ class RecursiveHasher(volume_scanner.VolumeScanner):
       file_system = resolver.Resolver.OpenFileSystem(base_path_spec)
       file_entry = resolver.Resolver.OpenFileEntry(base_path_spec)
       if file_entry is None:
+        path_specification_string = helpers.GetPathSpecificationString(
+            base_path_spec)
         logging.warning('Unable to open base path specification:\n{0:s}'.format(
-            base_path_spec.comparable))
+            path_specification_string))
         continue
 
       self._CalculateHashesFileEntry(file_system, file_entry, [], output_writer)
