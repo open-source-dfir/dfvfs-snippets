@@ -106,9 +106,11 @@ class FileEntryLister(volume_scanner.VolumeScanner):
       file_system = resolver.Resolver.OpenFileSystem(base_path_spec)
       file_entry = resolver.Resolver.OpenFileEntry(base_path_spec)
       if file_entry is None:
+        path_specification_string = helpers.GetPathSpecificationString(
+            base_path_spec)
         logging.warning(
             'Unable to open base path specification:\n{0:s}'.format(
-                base_path_spec.comparable))
+                path_specification_string))
         return
 
       self._ListFileEntry(file_system, file_entry, [], output_writer)
