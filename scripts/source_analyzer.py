@@ -14,6 +14,8 @@ from dfvfs.helpers import source_scanner
 from dfvfs.lib import definitions as dfvfs_definitions
 from dfvfs.resolver import resolver
 
+from scripts import helpers
+
 
 class SourceAnalyzer(object):
   """Analyzer to recursively check for volumes and file systems."""
@@ -200,31 +202,7 @@ def Main():
     print('')
     return False
 
-  if options.back_end == 'EXT':
-    dfvfs_definitions.PREFERRED_EXT_BACK_END = (
-        dfvfs_definitions.TYPE_INDICATOR_EXT)
-
-  elif options.back_end == 'GPT':
-    dfvfs_definitions.PREFERRED_GPT_BACK_END = (
-        dfvfs_definitions.TYPE_INDICATOR_GPT)
-
-  elif options.back_end == 'HFS':
-    dfvfs_definitions.PREFERRED_HFS_BACK_END = (
-        dfvfs_definitions.TYPE_INDICATOR_HFS)
-
-  elif options.back_end == 'NTFS':
-    dfvfs_definitions.PREFERRED_NTFS_BACK_END = (
-        dfvfs_definitions.TYPE_INDICATOR_NTFS)
-
-  elif options.back_end == 'TSK':
-    dfvfs_definitions.PREFERRED_EXT_BACK_END = (
-        dfvfs_definitions.TYPE_INDICATOR_TSK)
-    dfvfs_definitions.PREFERRED_GPT_BACK_END = (
-        dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION)
-    dfvfs_definitions.PREFERRED_HFS_BACK_END = (
-        dfvfs_definitions.TYPE_INDICATOR_TSK)
-    dfvfs_definitions.PREFERRED_NTFS_BACK_END = (
-        dfvfs_definitions.TYPE_INDICATOR_TSK)
+  helpers.SetDFVFSBackEnd(options.back_end)
 
   logging.basicConfig(
       level=logging.INFO, format='[%(levelname)s] %(message)s')
