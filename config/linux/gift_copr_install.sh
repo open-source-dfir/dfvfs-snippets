@@ -35,6 +35,7 @@ PYTHON3_DEPENDENCIES="libbde-python3
                       python3-dtfabric
                       python3-idna
                       python3-pytsk3
+                      python3-pyxattr
                       python3-pyyaml";
 
 # Additional dependencies for running tests, alphabetized, one per line.
