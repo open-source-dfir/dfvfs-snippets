@@ -50,7 +50,6 @@ class TestOutputWriter(recursive_hasher.OutputWriter):
     self.hashes.append((path, hash_value))
 
 
-@test_lib.skipUnlessHasTestFile(['image.qcow2'])
 class RecursiveHasherTest(test_lib.BaseTestCase):
   """Tests for the recursive hasher."""
 
@@ -59,6 +58,8 @@ class RecursiveHasherTest(test_lib.BaseTestCase):
   def testCalculateHashDataStream(self):
     """Tests the _CalculateHashDataStream function."""
     path = self._GetTestFilePath(['image.qcow2'])
+    self._SkipIfPathNotExists(path)
+
     test_hasher = recursive_hasher.RecursiveHasher()
 
     path_spec = path_spec_factory.Factory.NewPathSpec(
@@ -80,6 +81,8 @@ class RecursiveHasherTest(test_lib.BaseTestCase):
   def testCalculateHashesFileEntry(self):
     """Tests the _CalculateHashesFileEntry function."""
     path = self._GetTestFilePath(['image.qcow2'])
+    self._SkipIfPathNotExists(path)
+
     test_hasher = recursive_hasher.RecursiveHasher()
 
     path_spec = path_spec_factory.Factory.NewPathSpec(
@@ -107,6 +110,8 @@ class RecursiveHasherTest(test_lib.BaseTestCase):
   def testGetDisplayPath(self):
     """Tests the _GetDisplayPath function."""
     path = self._GetTestFilePath(['image.qcow2'])
+    self._SkipIfPathNotExists(path)
+
     test_hasher = recursive_hasher.RecursiveHasher()
 
     path_spec = path_spec_factory.Factory.NewPathSpec(
@@ -124,6 +129,8 @@ class RecursiveHasherTest(test_lib.BaseTestCase):
   def testCalculateHashes(self):
     """Tests the CalculateHashes function."""
     path = self._GetTestFilePath(['image.qcow2'])
+    self._SkipIfPathNotExists(path)
+
     test_hasher = recursive_hasher.RecursiveHasher()
 
     base_path_specs = test_hasher.GetBasePathSpecs(path)
@@ -144,6 +151,8 @@ class RecursiveHasherTest(test_lib.BaseTestCase):
   def testGetBasePathSpecs(self):
     """Tests the GetBasePathSpecs function."""
     path = self._GetTestFilePath(['image.qcow2'])
+    self._SkipIfPathNotExists(path)
+
     test_hasher = recursive_hasher.RecursiveHasher()
 
     expected_path_spec = path_spec_factory.Factory.NewPathSpec(

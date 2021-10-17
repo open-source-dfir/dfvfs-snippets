@@ -49,7 +49,6 @@ class TestOutputWriter(list_file_entries.OutputWriter):
     self.paths.append(path)
 
 
-@test_lib.skipUnlessHasTestFile(['image.qcow2'])
 class FileEntryListerTest(test_lib.BaseTestCase):
   """Tests for the file entry lister."""
 
@@ -58,6 +57,8 @@ class FileEntryListerTest(test_lib.BaseTestCase):
   def testListFileEntry(self):
     """Tests the _ListFileEntry function."""
     path = self._GetTestFilePath(['image.qcow2'])
+    self._SkipIfPathNotExists(path)
+
     test_lister = list_file_entries.FileEntryLister()
 
     path_spec = path_spec_factory.Factory.NewPathSpec(
@@ -82,6 +83,8 @@ class FileEntryListerTest(test_lib.BaseTestCase):
   def testListFileEntries(self):
     """Tests the ListFileEntries function."""
     path = self._GetTestFilePath(['image.qcow2'])
+    self._SkipIfPathNotExists(path)
+
     test_lister = list_file_entries.FileEntryLister()
 
     base_path_specs = test_lister.GetBasePathSpecs(path)
@@ -106,6 +109,8 @@ class FileEntryListerTest(test_lib.BaseTestCase):
   def testGetBasePathSpecs(self):
     """Tests the GetBasePathSpecs function."""
     path = self._GetTestFilePath(['image.qcow2'])
+    self._SkipIfPathNotExists(path)
+
     test_lister = list_file_entries.FileEntryLister()
 
     expected_path_spec = path_spec_factory.Factory.NewPathSpec(
