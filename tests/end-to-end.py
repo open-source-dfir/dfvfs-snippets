@@ -85,14 +85,15 @@ class TestCase(object):
     """
     if command[0].endswith('py'):
       command.insert(0, sys.executable)
-    logging.info('Running: {0:s}'.format(' '.join(command)))
-    child = subprocess.Popen(command, stdout=stdout, stderr=stderr)
-    child.communicate()
-    exit_code = child.returncode
+    command_string = ' '.join(command)
+    logging.info('Running: {0:s}'.format(command_string))
+    with subprocess.Popen(command, stdout=stdout, stderr=stderr) as child:
+      child.communicate()
+      exit_code = child.returncode
 
     if exit_code != 0:
       logging.error('Running: "{0:s}" failed (exit code {1:d}).'.format(
-          command, exit_code))
+          command_string, exit_code))
       return False
 
     return True

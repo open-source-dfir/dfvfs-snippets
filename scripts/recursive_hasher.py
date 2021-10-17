@@ -255,7 +255,7 @@ class FileOutputWriter(OutputWriter):
     """Opens the output writer object."""
     # Using binary mode to make sure to write Unix end of lines, so we can
     # compare output files cross-platform.
-    self._file_object = open(self._path, 'wb')
+    self._file_object = open(self._path, 'wb')  # pylint: disable=consider-using-with
 
   def WriteFileHash(self, path, hash_value):
     """Writes the file path and hash to file.
