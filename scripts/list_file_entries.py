@@ -58,8 +58,8 @@ class FileEntryLister(volume_scanner.VolumeScanner):
 
     if path_spec.HasParent():
       parent_path_spec = path_spec.parent
-      if parent_path_spec and parent_path_spec.type_indicator == (
-          dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION):
+      if parent_path_spec and parent_path_spec.type_indicator in (
+          dfvfs_definitions.PARTITION_TABLE_TYPE_INDICATORS):
         display_path = ''.join([display_path, parent_path_spec.location])
 
     path_segments = [
